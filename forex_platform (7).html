@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Van Duijn Markets</title>
+<style>
+  :root {
+    --bg: #eeece7; --bg2: #e8e5df; --bg3: #e0ddd6;
+    --bg-dark: #1c1e1a; --bg-dark2: #252720;
+    --border: #d0ccc2; --border2: #bab5a8;
+    --accent: #4a5240; --gold: #8b7355; --gold2: #a08560;
+    --green: #2d5a3d; --red: #7a3030;
+    --text: #1c1e1a; --text2: #3a3c38; --muted: #6b6d66; --subtle: #9a9b94;
+    --font: 'Georgia','Times New Roman',serif;
+    --sans: 'Segoe UI',system-ui,sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+  a { color: var(--gold); text-decoration: none; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 64px; height: 68px;
+    border-bottom: 1px solid var(--border); background: var(--bg);
+    position: sticky; top: 0; z-index: 999;
+  }
+  .logo { font-family: var(--font); font-size: 2rem; font-weight: 400; letter-spacing: 1px; color: var(--text); }
+  .logo span { color: var(--gold); }
+  .nav-center { display: flex; align-items: center; gap: 36px; }
+  .nav-center a { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: color .2s; }
+  .nav-center a:hover { color: var(--text); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .btn { padding: 8px 22px; border: none; cursor: pointer; font-size: 0.68rem; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; transition: all .2s; font-family: var(--sans); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-dark { background: var(--bg-dark); color: #d8d4cb; }
+  .btn-dark:hover { background: var(--bg-dark2); }
+  .btn-full { width: 100%; padding: 13px; text-align: center; }
+  .btn-outline-light { background: transparent; border: 1px solid #3a3c35; color: #7a7d72; }
+  .btn-outline-light:hover { border-color: var(--gold2); color: var(--gold2); }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); }
+
+  /* MOBILE MENU */
+  #mobile-menu {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-dark); z-index: 1000;
+    flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  }
+  #mobile-menu.open { display: flex; }
+  #mobile-menu a { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: #c8c4bc; cursor: pointer; }
+  #mobile-menu a:hover { color: var(--gold); }
+  .close-btn { position: absolute; top: 20px; right: 24px; background: none; border: none; color: #c8c4bc; font-size: 1.8rem; cursor: pointer; line-height: 1; }
+
+  /* TICKER */
+  .ticker-bar { background: var(--bg-dark); border-bottom: 1px solid #2a2c25; overflow: hidden; white-space: nowrap; padding: 8px 0; cursor: grab; user-select: none; }
+  .ticker-track { display: flex; width: max-content; will-change: transform; }
+  .ticker-content { display: flex; flex-shrink: 0; }
+  .tick-item { display: inline-flex; align-items: center; margin: 0 48px; font-size: 0.72rem; letter-spacing: 1px; }
+  .tick-pair { color: #a0a39a; font-weight: 700; margin-right: 10px; text-transform: uppercase; letter-spacing: 2px; }
+  .tick-price { color: #c8c4bc; font-weight: 600; margin-right: 8px; }
+  .tick-up { color: #5a8c6a; font-size: 0.68rem; }
+  .tick-down { color: #9a5050; font-size: 0.68rem; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero { display: grid; grid-template-columns: 1fr 420px; min-height: 520px; border-bottom: 1px solid var(--border); }
+  .hero-left { padding: 88px 64px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+  .hero-left::before { content: ''; position: absolute; inset: 0; background: url('https://i.postimg.cc/Xvb7jgmk/Chat-GPT-Image-16-mei-2026-16-55-42.jpg') center/cover no-repeat; z-index: 0; }
+  .hero-left::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(238,236,231,.97) 0%, rgba(238,236,231,.92) 50%, rgba(238,236,231,.6) 100%); z-index: 1; }
+  .hero-left > * { position: relative; z-index: 2; }
+  .hero h1 { font-family: var(--font); font-size: 3rem; font-weight: 400; line-height: 1.2; color: var(--text); margin-bottom: 24px; }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero p { color: var(--muted); font-size: 0.92rem; max-width: 440px; line-height: 1.85; margin-bottom: 40px; }
+  .hero-actions { display: flex; gap: 12px; }
+  .hero-actions .btn { padding: 12px 28px; }
+  .hero-right { background: var(--bg-dark); border-left: 1px solid #2a2c25; padding: 48px 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+  .hero-disclaimer { font-size: 0.68rem; color: #4a4c45; line-height: 1.7; border-top: 1px solid #2a2c25; padding-top: 18px; width: 100%; }
+
+  /* SECTION */
+  .section { max-width: 1200px; margin: 0 auto; padding: 72px 64px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .section-head-left { display: flex; align-items: center; gap: 14px; }
+  .section-line { width: 20px; height: 1px; background: var(--gold); flex-shrink: 0; }
+  .section-head h2 { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
+  .section-head span { font-size: 0.68rem; color: var(--subtle); }
+
+  /* CARDS */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .card { background: var(--bg); padding: 28px; position: relative; transition: background .2s; }
+  .card:hover { background: var(--bg2); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .card-pair { font-family: var(--sans); font-size: 1.1rem; font-weight: 700; color: var(--text); letter-spacing: 2px; text-transform: uppercase; }
+  .card-meta { font-size: 0.62rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--subtle); margin-top: 4px; }
+  .bias-tag { font-size: 0.6rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; }
+  .bias-tag.bull { background: rgba(45,90,61,.08); color: var(--green); border: 1px solid rgba(45,90,61,.2); }
+  .bias-tag.bear { background: rgba(122,48,48,.08); color: var(--red); border: 1px solid rgba(122,48,48,.2); }
+  .bias-tag.neut { background: rgba(154,155,148,.1); color: var(--subtle); border: 1px solid var(--border2); }
+  .levels-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 16px; }
+  .level { background: var(--bg2); padding: 12px 14px; }
+  .level-lbl { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); margin-bottom: 6px; }
+  .level-val { font-size: 0.9rem; font-weight: 600; }
+  .level-val.entry { color: var(--gold); }
+  .level-val.sl { color: var(--red); }
+  .level-val.tp { color: var(--green); }
+  .card-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 16px; }
+  .chart-box { background: var(--bg2); overflow: hidden; }
+  .chart-label { font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  .chart-box img { width: 100%; height: 160px; object-fit: cover; display: block; }
+  .chart-empty { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--border2); }
+  .card-notes { font-size: 0.83rem; color: var(--muted); line-height: 1.75; }
+  .card-footer { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .card-date { font-size: 0.62rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--subtle); }
+  .blur-overlay { position: absolute; inset: 0; backdrop-filter: blur(10px); background: rgba(238,236,231,.8); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .blur-overlay p { font-size: 0.65rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+
+  /* FOUNDER */
+  .about-wrap { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .about-grid { display: grid; grid-template-columns: 280px 1fr; background: var(--border); border: 1px solid var(--border); }
+  .about-photo { display: flex; flex-direction: column; }
+  .about-photo img { width: 100%; flex: 1; object-fit: cover; object-position: top; display: block; filter: grayscale(20%); min-height: 400px; }
+  .about-photo-caption { background: var(--bg-dark); padding: 16px 20px; border-top: 1px solid #2a2c25; }
+  .cap-role { font-size: 0.58rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold2); margin-bottom: 4px; }
+  .cap-name { font-family: var(--font); font-size: 0.95rem; color: #c8c4bc; }
+  .about-content { background: var(--bg); padding: 52px 56px; }
+  .about-content p { color: var(--muted); font-size: 0.88rem; line-height: 1.9; margin-bottom: 18px; }
+  .about-content p:last-child { margin-bottom: 0; }
+  .about-content p strong { color: var(--text2); font-weight: 600; }
+  .disclaimer-box { border-left: 2px solid var(--gold); padding: 14px 18px; background: var(--bg2); margin-top: 28px; }
+  .disclaimer-box p { font-size: 0.78rem; color: var(--subtle); line-height: 1.7; margin: 0; font-style: italic; }
+
+  /* PRICING */
+  .pricing-wrap { background: var(--bg-dark); border-top: 1px solid #2a2c25; }
+  .pricing-section { max-width: 1200px; margin: 0 auto; padding: 72px 64px; }
+  .pricing-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 16px; border-bottom: 1px solid #2a2c25; }
+  .pricing-head-left { display: flex; align-items: center; gap: 14px; }
+  .pricing-head h2 { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold2); }
+  .pricing-head span { font-size: 0.68rem; color: #5a5c55; }
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #2a2c25; border: 1px solid #2a2c25; max-width: 640px; margin: 0 auto; }
+  .plan { background: var(--bg-dark); padding: 44px 40px; }
+  .plan.featured { background: var(--bg-dark2); }
+  .plan-tier { font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: #5a5c55; margin-bottom: 20px; }
+  .plan-price { font-family: var(--font); font-size: 2.8rem; color: #d8d4cb; line-height: 1; margin-bottom: 4px; }
+  .plan-price sup { font-size: 1rem; color: #7a7d72; vertical-align: top; margin-top: 10px; }
+  .plan-price sub { font-size: 0.8rem; color: #7a7d72; }
+  .plan-badge { display: inline-block; background: var(--gold); color: #1c1e1a; font-size: 0.55rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 8px; margin-left: 10px; vertical-align: middle; }
+  .plan-divider { border: none; border-top: 1px solid #2a2c25; margin: 22px 0; }
+  .plan-features { list-style: none; margin-bottom: 36px; }
+  .plan-features li { padding: 9px 0; font-size: 0.81rem; color: #7a7d72; border-bottom: 1px solid #2a2c25; display: flex; align-items: center; gap: 12px; }
+  .plan-features li::before { content: '—'; color: var(--gold); font-size: 0.7rem; }
+  .plan .btn { width: 100%; padding: 13px; text-align: center; }
+
+  /* GATE */
+  .gate { min-height: calc(100vh - 69px); display: flex; align-items: center; justify-content: center; background: var(--bg); }
+  .gate-box { border: 1px solid var(--border); background: var(--bg2); padding: 56px 52px; width: 420px; }
+  .gate-eyebrow { font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .gate-eyebrow::before { content: ''; display: block; width: 16px; height: 1px; background: var(--gold); }
+  .gate-box h2 { font-family: var(--font); font-size: 1.6rem; color: var(--text); margin-bottom: 10px; }
+  .gate-box p { font-size: 0.82rem; color: var(--muted); margin-bottom: 32px; line-height: 1.75; }
+  .form-group { margin-bottom: 20px; }
+  .form-label { display: block; font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); margin-bottom: 8px; }
+  .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); padding: 11px 16px; font-size: 0.88rem; outline: none; border-radius: 0; transition: border-color .2s; font-family: var(--sans); }
+  .form-input:focus { border-color: var(--gold); }
+  select.form-input option { background: var(--bg2); color: var(--text); }
+  textarea.form-input { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .gate-err { font-size: 0.72rem; color: var(--red); margin-top: 10px; }
+  .gate-foot { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--subtle); }
+
+  /* MEMBER */
+  .member-welcome { background: var(--bg-dark); border-bottom: 1px solid #2a2c25; padding: 24px 64px; display: flex; align-items: center; justify-content: space-between; }
+  .member-welcome-title { font-family: var(--font); font-size: 1.4rem; color: #c8c4bc; }
+  .member-welcome-sub { font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: #5a5c55; margin-bottom: 6px; }
+  .filter-strip { padding: 0 64px; border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; background: var(--bg2); }
+  .filter-btn { padding: 16px 20px; font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); background: transparent; border: none; border-bottom: 1px solid transparent; cursor: pointer; white-space: nowrap; transition: all .15s; font-family: var(--sans); margin-bottom: -1px; }
+  .filter-btn.active, .filter-btn:hover { color: var(--gold); border-bottom-color: var(--gold); }
+  .archive-pair-header { background: var(--bg2); border: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 1px; transition: background .15s; }
+  .archive-pair-header:hover { background: var(--bg3); }
+
+  /* ADMIN */
+  .admin-wrap { max-width: 700px; margin: 0 auto; padding: 64px; }
+  .admin-title-block { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .admin-title-block h2 { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .admin-list-title { font-size: 0.58rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--subtle); padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
+  .admin-item { background: var(--bg); border-bottom: 1px solid var(--border); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; transition: background .15s; }
+  .admin-item:hover { background: var(--bg2); }
+  .admin-item-info strong { display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 4px; }
+  .admin-item-info span { font-size: 0.7rem; color: var(--muted); }
+  .btn-del { background: transparent; border: 1px solid rgba(122,48,48,.3); color: var(--red); padding: 5px 16px; cursor: pointer; font-size: 0.62rem; letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--sans); transition: all .15s; }
+  .btn-del:hover { background: rgba(122,48,48,.08); }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; height: 56px; }
+    .logo { font-size: 1.1rem; letter-spacing: 0.5px; }
+    .nav-center { display: none; }
+    .nav-right .btn-ghost, .nav-right .btn-dark { display: none; }
+    .hamburger { display: flex; }
+    .hero { grid-template-columns: 1fr; }
+    .hero-left { padding: 48px 24px; }
+    .hero h1 { font-size: 2rem; }
+    .hero p { font-size: 0.85rem; }
+    .hero-right { border-left: none; border-top: 1px solid #2a2c25; padding: 32px 24px; }
+    .hero-actions { flex-direction: column; }
+    .hero-actions .btn { width: 100%; text-align: center; }
+    .section { padding: 40px 24px; }
+    .section-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .about-grid { grid-template-columns: 1fr; }
+    .about-photo img { min-height: 200px; max-height: 280px; }
+    .about-content { padding: 28px 24px; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .card-charts { grid-template-columns: 1fr; }
+    .pricing-section { padding: 40px 24px; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-head { flex-direction: column; gap: 6px; }
+    .filter-strip { padding: 0 20px; }
+    .member-welcome { padding: 20px 24px; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .admin-wrap { padding: 32px 24px; }
+    .form-row { grid-template-columns: 1fr; }
+    .gate-box { width: calc(100% - 40px); padding: 36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Van Duijn <span>Markets</span></div>
+  <div class="nav-center">
+    <a onclick="window.scrollTo(0,0)">Overview</a>
+    <a onclick="goTo('about-section')">Founder</a>
+    <a onclick="goTo('aboutus-section')">About Us</a>
+    <a onclick="goTo('trackrecord-section')">Track Record</a>
+    <a onclick="goTo('pricing-section')">Access</a>
+    <a onclick="showPage('gate')">Member Login</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-ghost" onclick="showPage('admin-login')">Admin</button>
+    <button class="btn btn-dark" onclick="goTo('pricing-section')">Request Access</button>
+    <button class="hamburger" onclick="document.getElementById('mobile-menu').classList.add('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div id="mobile-menu">
+  <button class="close-btn" onclick="document.getElementById('mobile-menu').classList.remove('open')">✕</button>
+  <a onclick="document.getElementById('mobile-menu').classList.remove('open');window.scrollTo(0,0)">Overview</a>
+  <a onclick="document.getElementById('mobile-menu').classList.remove('open');goTo('about-section')">Founder</a>
+  <a onclick="document.getElementById('mobile-menu').classList.remove('open');goTo('aboutus-section')">About Us</a>
+  <a onclick="document.getElementById('mobile-menu').classList.remove('open');goTo('trackrecord-section')">Track Record</a>
+  <a onclick="document.getElementById('mobile-menu').classList.remove('open');goTo('pricing-section')">Access</a>
+  <a onclick="document.getElementById('mobile-menu').classList.remove('open');showPage('gate')">Member Login</a>
+  <a onclick="document.getElementById('mobile-menu').classList.remove('open');showPage('admin-login')">Admin</a>
+</div>
+
+<div class="ticker-bar"><div class="ticker-track" id="ticker"><div class="ticker-content" id="ticker-content-1"></div><div class="ticker-content" id="ticker-content-2"></div></div></div>
+
+<!-- LANDING -->
+<div id="page-landing" class="page active">
+
+  <div class="hero">
+    <div class="hero-left">
+      <h1>Market Bias &<br><em>Structured Insights</em></h1>
+      <p>A professional and transparent view of the forex market, grounded in liquidity theory and price inefficiencies. Analysis shared with discipline and rigour.</p>
+      <div class="hero-actions">
+        <button class="btn btn-dark" onclick="goTo('pricing-section')">Request Access</button>
+        <button class="btn btn-ghost" onclick="showPage('gate')">Member Login</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div style="width:160px;height:160px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);flex-shrink:0">
+        <img src="https://i.postimg.cc/Qx4kBf33/Chat-GPT-Image-5-mei-2026-17-04-28.jpg" alt="Arie E.F. van Duijn" style="width:100%;height:100%;object-fit:cover;object-position:top">
+      </div>
+      <div style="text-align:center;padding:0 8px">
+        <p style="font-family:var(--font);font-size:0.95rem;font-style:italic;color:#c8c4bc;line-height:1.7;margin-bottom:14px">"The goal is not to chase the market, but to understand its behavior."</p>
+        <span style="font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:#5a5c55">— Arie E.F. van Duijn</span>
+      </div>
+      <div class="hero-disclaimer">The analysis on this platform reflects personal market bias and is strictly informational. Nothing herein constitutes financial advice or a recommendation to trade.</div>
+    </div>
+  </div>
+
+  <!-- FOUNDER -->
+  <div class="about-wrap" id="about-section">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-head-left"><div class="section-line"></div><h2>Founder</h2></div>
+        <span>Van Duijn Markets</span>
+      </div>
+      <div class="about-grid">
+        <div class="about-photo">
+          <img src="https://i.postimg.cc/cHJSQvjn/Chat-GPT-Image-6-mei-2026-19-47-38.png" alt="Arie E.F. van Duijn">
+          <div class="about-photo-caption">
+            <div class="cap-role">Founder & Analyst</div>
+            <div class="cap-name">Arie E.F. van Duijn</div>
+          </div>
+        </div>
+        <div class="about-content">
+          <p>Arie E.F. van Duijn is the founder of Van Duijn Markets and has over five years of experience in the financial markets, with a specialization in forex trading and technical analysis.</p>
+          <p>Over the years, he has developed a structured trading approach focused on liquidity, price inefficiencies, and recurring market behavior. His experience includes trading funded accounts for multiple proprietary trading firms, alongside actively managing personal capital.</p>
+          <p>Arie recognizes that the trading industry has increasingly been influenced by the culture surrounding social media, where unrealistic expectations and short-term results are often emphasized. His approach differs fundamentally by focusing on discipline, risk management, consistency, and a long-term perspective toward market participation.</p>
+          <p>This philosophy forms the foundation of Van Duijn Markets — a platform created to deliver professional market analysis and to promote a more structured, transparent, and sustainable approach to trading and financial markets.</p>
+          <div class="disclaimer-box">
+            <p>The analyses shared on this platform reflect personal market bias and are strictly for informational purposes. Nothing constitutes financial advice or a recommendation to buy or sell any financial instrument.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT US -->
+  <div style="background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border)" id="aboutus-section">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-head-left"><div class="section-line"></div><h2>About Us</h2></div>
+        <span>Van Duijn Markets</span>
+      </div>
+      <div style="max-width:820px">
+        <p style="font-family:var(--font);font-size:1.5rem;font-weight:400;color:var(--text);line-height:1.5;margin-bottom:32px">Welcome to Van Duijn Markets — a modern financial analysis platform focused on the global forex markets.</p>
+        <p style="font-size:0.88rem;color:var(--muted);line-height:1.9;margin-bottom:18px">Our objective is to provide clear, structured, and high-quality market analysis based on technical confluence, liquidity behavior, and evolving market conditions.</p>
+        <p style="font-size:0.88rem;color:var(--muted);line-height:1.9;margin-bottom:18px">Our strategy is built on technical analysis, with liquidity, price inefficiencies, and market structure at the core of our approach. We analyze how price moves around key liquidity zones and identify where market imbalances develop in order to determine a clear and objective market bias. In addition, we focus on recurring market setups and repeatable price action patterns that historically provide high-probability trading opportunities.</p>
+        <p style="font-size:0.88rem;color:var(--muted);line-height:1.9;margin-bottom:18px">The philosophy behind Van Duijn Markets is based on one fundamental principle: markets are constantly seeking balance. When price moves away from fair value, it creates movement toward liquidity and areas where the market aims to restore equilibrium.</p>
+        <p style="font-size:0.88rem;color:var(--muted);line-height:1.9;margin-bottom:18px">Based on this perspective, we operate on both the long and short side of the market, allowing us to identify opportunities in both bullish and bearish market conditions.</p>
+        <p style="font-size:0.88rem;color:var(--muted);line-height:1.9;margin-bottom:28px">We believe consistent performance is driven by discipline, risk management, and a deep understanding of market behavior. Van Duijn Markets provides a professional and analytical approach for traders seeking greater structure, clarity, and confidence in the markets.</p>
+        <div class="disclaimer-box">
+          <p>The analyses shared on this platform reflect personal market bias and are strictly for informational purposes. Nothing constitutes financial advice or a recommendation to buy or sell any financial instrument.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACK RECORD -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)" id="trackrecord-section">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-head-left"><div class="section-line"></div><h2>Track Record</h2></div>
+        <span>Verified payouts & allocations</span>
+      </div>
+      <div class="cards-grid" id="certificates-grid"></div>
+      <div style="margin-top:20px;border-left:2px solid var(--gold);padding:12px 18px;background:var(--bg)">
+        <p style="font-size:0.75rem;color:var(--subtle);font-style:italic">Past performance and verified payouts do not guarantee future results.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <div class="pricing-wrap" id="pricing-section">
+    <div class="pricing-section">
+      <div class="pricing-head">
+        <div class="pricing-head-left"><div class="section-line" style="background:var(--gold2)"></div><h2>Subscription Plans</h2></div>
+        <span>Cancel anytime · No hidden fees</span>
+      </div>
+      <div class="pricing-grid">
+        <div class="plan">
+          <div class="plan-tier">Monthly Access</div>
+          <div class="plan-price"><sup>€</sup>49<sub> /mo</sub></div>
+          <hr class="plan-divider">
+          <ul class="plan-features">
+            <li>Daily analysis every trading day</li>
+            <li>DXY, EUR/USD, GBP/USD & XAU/USD</li>
+            <li>Bias & key price levels</li>
+            <li>HTF & LTF timeframe coverage</li>
+          </ul>
+          <button class="btn btn-outline-light btn-full">Subscribe Monthly</button>
+        </div>
+        <div class="plan featured">
+          <div class="plan-tier">Quarterly Access <span class="plan-badge">Save 15%</span></div>
+          <div class="plan-price"><sup>€</sup>125<sub> /3mo</sub></div>
+          <hr class="plan-divider">
+          <ul class="plan-features">
+            <li>Everything in Monthly</li>
+            <li>Weekly evaluation every weekend</li>
+            <li>Priority support access</li>
+            <li>Early access to updates</li>
+          </ul>
+          <button class="btn btn-dark btn-full" style="background:var(--gold);color:#1c1e1a">Subscribe Quarterly</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MEMBER GATE -->
+<div id="page-gate" class="page">
+  <div class="gate">
+    <div class="gate-box">
+      <div class="gate-eyebrow">Van Duijn Markets</div>
+      <h2>Member Access</h2>
+      <p>This area is restricted to active subscribers. Enter your credentials to access the full analysis feed.</p>
+      <div class="form-group">
+        <label class="form-label">Access Password</label>
+        <input class="form-input" type="password" id="member-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')memberLogin()">
+      </div>
+      <button class="btn btn-dark btn-full" style="background:var(--accent);color:#f5f4f0" onclick="memberLogin()">Access Portal</button>
+      <div class="gate-err" id="member-err"></div>
+      <div class="gate-foot">Not yet a subscriber? <a href="#" onclick="goTo('pricing-section')">View plans →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER AREA -->
+<div id="page-member" class="page">
+  <div class="member-welcome">
+    <div>
+      <div class="member-welcome-sub">Van Duijn Markets — Member Portal</div>
+      <div class="member-welcome-title">Welcome back, trader.</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:0.65rem;letter-spacing:1px;color:#5a5c55;margin-bottom:10px" id="member-date"></div>
+      <button class="btn btn-ghost" onclick="showPage('landing')" style="font-size:0.62rem;padding:6px 16px">Sign Out</button>
+    </div>
+  </div>
+  <div class="filter-strip" id="pair-filters"></div>
+  <div style="max-width:1200px;margin:48px auto 0;padding:0 64px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+      <div class="section-line"></div>
+      <div style="font-size:0.62rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold)">Latest Analysis</div>
+    </div>
+    <div class="cards-grid" id="member-cards"></div>
+  </div>
+  <div style="max-width:1200px;margin:64px auto;padding:0 64px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+      <div class="section-line"></div>
+      <div style="font-size:0.62rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold)">Archive — By Pair</div>
+    </div>
+    <div id="archive-grid"></div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="page-admin-login" class="page">
+  <div class="gate">
+    <div class="gate-box">
+      <div class="gate-eyebrow">Administration</div>
+      <h2>Admin Access</h2>
+      <p>Restricted to authorised personnel only.</p>
+      <div class="form-group">
+        <label class="form-label">Admin Password</label>
+        <input class="form-input" type="password" id="admin-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+      </div>
+      <button class="btn btn-dark btn-full" style="background:var(--accent);color:#f5f4f0" onclick="adminLogin()">Login</button>
+      <div class="gate-err" id="admin-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="page-admin" class="page">
+  <div class="admin-wrap">
+    <div class="admin-title-block">
+      <h2>Publish Analysis</h2>
+      <button class="btn btn-ghost" onclick="showPage('landing')" style="font-size:0.62rem;padding:6px 16px">← Exit</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Currency Pair</label>
+      <select id="f-pair" class="form-input"><option>DXY</option><option>EUR/USD</option><option>GBP/USD</option><option>XAU/USD</option></select>
+    </div>
+    <div class="form-row" style="margin-bottom:16px">
+      <div class="form-group" style="margin:0"><label class="form-label">Timeframe</label><select id="f-tf" class="form-input"><option>H1</option><option>H4</option><option>D1</option><option>W1</option><option>MN</option><option>M15</option></select></div>
+      <div class="form-group" style="margin:0"><label class="form-label">Bias</label><select id="f-bias" class="form-input"><option>Bullish</option><option>Bearish</option><option>Neutral</option></select></div>
+    </div>
+    <div class="form-row" style="margin-bottom:16px">
+      <div class="form-group" style="margin:0"><label class="form-label">Key Level</label><input id="f-entry" class="form-input" placeholder="1.0850" type="number" step="0.0001"></div>
+      <div class="form-group" style="margin:0"><label class="form-label">HTF Target</label><input id="f-sl" class="form-input" placeholder="1.0800" type="number" step="0.0001"></div>
+      <div class="form-group" style="margin:0"><label class="form-label">LTF Target</label><input id="f-tp" class="form-input" placeholder="1.0950" type="number" step="0.0001"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Analysis</label>
+      <textarea id="f-notes" class="form-input" placeholder="Describe the bias, key liquidity zones, price inefficiencies and market structure..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">HTF Chart URL (postimg.cc)</label>
+      <input type="text" id="f-htf-img" class="form-input" placeholder="https://i.postimg.cc/...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">LTF Chart URL (postimg.cc)</label>
+      <input type="text" id="f-ltf-img" class="form-input" placeholder="https://i.postimg.cc/...">
+    </div>
+    <button class="btn btn-dark btn-full" style="background:var(--accent);color:#f5f4f0" onclick="postAnalysis()">Publish Analysis</button>
+    <div style="margin-top:52px">
+      <div class="admin-list-title">Published Posts</div>
+      <div id="admin-list-items"></div>
+    </div>
+    <div style="margin-top:56px;padding-top:32px;border-top:1px solid var(--border)">
+      <div class="admin-list-title" style="margin-bottom:24px">Add Certificate</div>
+      <div class="form-group">
+        <label class="form-label">Firm</label>
+        <select id="c-firm" class="form-input"><option>FTMO</option><option>The Funded Trader</option><option>MyForexFunds</option><option>E8 Funding</option><option>Other</option></select>
+      </div>
+      <div class="form-row" style="margin-bottom:16px">
+        <div class="form-group" style="margin:0"><label class="form-label">Type</label><select id="c-type" class="form-input"><option>Payout Certificate</option><option>Max Allocation</option><option>Consistency Certificate</option></select></div>
+        <div class="form-group" style="margin:0"><label class="form-label">Amount</label><input id="c-amount" class="form-input" placeholder="€2,400"></div>
+        <div class="form-group" style="margin:0"><label class="form-label">Date</label><input id="c-date" class="form-input" placeholder="March 2026"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Certificate Image</label>
+        <input type="file" id="c-img" accept="image/*" class="form-input" style="padding:8px" onchange="previewCert(this)">
+        <div id="c-preview" style="display:none;margin-top:8px;border:1px solid var(--border);background:var(--bg2);padding:6px">
+          <img id="c-preview-img" style="width:100%;max-height:200px;object-fit:contain">
+        </div>
+      </div>
+      <button class="btn btn-dark btn-full" style="background:var(--accent);color:#f5f4f0" onclick="addCertificate()">Add Certificate</button>
+      <div style="margin-top:28px">
+        <div class="admin-list-title" style="margin-bottom:2px">Published Certificates</div>
+        <div id="cert-admin-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MEMBER_PW = 'Freemember';
+  const ADMIN_PW = 'A?ie200444';
+  let posts = [], certificates = [], nextId = 1, activeFilter = 'all';
+
+  const DEFAULT_POSTS = [
+    { id:1, pair:'EUR/USD', tf:'H4', bias:'Bullish', entry:'1.0850', sl:'1.0800', tp:'1.0950', htfImg:'', ltfImg:'', notes:'Price trading above a key liquidity zone at 1.0850. Expecting bullish continuation as inefficiencies above remain unfilled. Bias is long, targeting the 1.0950 area where sell-side liquidity rests.', date:'13 May 2026' },
+    { id:2, pair:'GBP/USD', tf:'D1', bias:'Bearish', entry:'1.2650', sl:'1.2720', tp:'1.2500', htfImg:'', ltfImg:'', notes:'Cable showing clear rejection from a premium supply zone at 1.2650. Daily structure bearish. Price imbalance below at 1.2500 remains unfilled.', date:'13 May 2026' },
+    { id:3, pair:'XAU/USD', tf:'H4', bias:'Bullish', entry:'2318.00', sl:'2295.00', tp:'2360.00', htfImg:'', ltfImg:'', notes:'Gold tapping into a strong demand zone at 2318. Clear price inefficiency visible on H4. Bullish bias targeting 2360 liquidity.', date:'12 May 2026' },
+  ];
+
+  function bc(b){ return b==='Bullish'?'bull':b==='Bearish'?'bear':'neut'; }
+
+  function cardHTML(p, blur=false){
+    const charts = (p.htfImg||p.ltfImg) ? `
+      <div class="card-charts">
+        <div class="chart-box"><div class="chart-label">HTF Chart</div>${p.htfImg?`<img src="${p.htfImg}" alt="HTF">`:`<div class="chart-empty">No image</div>`}</div>
+        <div class="chart-box"><div class="chart-label">LTF Chart</div>${p.ltfImg?`<img src="${p.ltfImg}" alt="LTF">`:`<div class="chart-empty">No image</div>`}</div>
+      </div>` : '';
+    return `<div class="card">
+      <div class="card-top">
+        <div><div class="card-pair">${p.pair}</div><div class="card-meta">${p.tf} · ${p.date}</div></div>
+        <div class="bias-tag ${bc(p.bias)}">${p.bias}</div>
+      </div>
+      <div class="levels-row">
+        <div class="level"><div class="level-lbl">Key Level</div><div class="level-val entry">${p.entry}</div></div>
+        <div class="level"><div class="level-lbl">HTF Target</div><div class="level-val sl">${p.sl}</div></div>
+        <div class="level"><div class="level-lbl">LTF Target</div><div class="level-val tp">${p.tp}</div></div>
+      </div>
+      ${charts}
+      <div class="card-notes">${p.notes}</div>
+      <div class="card-footer"><span class="card-date">${p.date}</span></div>
+      ${blur?`<div class="blur-overlay"><p>Subscriber Access Required</p><button class="btn btn-dark" style="background:var(--accent);color:#f5f4f0;padding:10px 24px" onclick="showPage('gate')">Request Access</button></div>`:''}
+    </div>`;
+  }
+
+  function renderMember(){
+    const filtered = activeFilter==='all' ? posts : posts.filter(p=>p.pair===activeFilter);
+    document.getElementById('member-cards').innerHTML = filtered.length
+      ? filtered.map(p=>cardHTML(p)).join('')
+      : '<div style="padding:56px;color:var(--subtle);font-size:0.78rem;text-align:center;background:var(--bg2);letter-spacing:1.5px;text-transform:uppercase">No analysis published yet</div>';
+    const pairs = [...new Set(posts.map(p=>p.pair))];
+    document.getElementById('pair-filters').innerHTML =
+      `<button class="filter-btn ${activeFilter==='all'?'active':''}" onclick="filterPair('all',this)">All Pairs</button>` +
+      pairs.map(p=>`<button class="filter-btn ${activeFilter===p?'active':''}" onclick="filterPair('${p}',this)">${p}</button>`).join('');
+    renderArchive();
+    const d=new Date();
+    const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const mo=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('member-date').textContent=`${days[d.getDay()]}, ${d.getDate()} ${mo[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function renderArchive(){
+    const pairs=['DXY','EUR/USD','GBP/USD','XAU/USD'];
+    document.getElementById('archive-grid').innerHTML = pairs.map(pair=>{
+      const pp=posts.filter(p=>p.pair===pair);
+      if(!pp.length) return '';
+      const sid=pair.replace('/','');
+      return `<div style="margin-bottom:2px">
+        <div class="archive-pair-header" onclick="toggleArchive('arch-${sid}','tog-${sid}')">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="section-line"></div>
+            <span style="font-size:0.78rem;font-weight:700;letter-spacing:2px;color:var(--text)">${pair}</span>
+            <span style="font-size:0.65rem;color:var(--subtle)">${pp.length} ${pp.length===1?'analysis':'analyses'}</span>
+          </div>
+          <span id="tog-${sid}" style="font-size:0.7rem;color:var(--gold)">▼</span>
+        </div>
+        <div id="arch-${sid}" style="display:none">
+          <div class="cards-grid">${pp.map(p=>cardHTML(p)).join('')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleArchive(archId, togId){
+    const el=document.getElementById(archId), tog=document.getElementById(togId);
+    const open=el.style.display==='block';
+    el.style.display=open?'none':'block';
+    if(tog) tog.textContent=open?'▼':'▲';
+  }
+
+  function renderCertificates(){
+    const grid=document.getElementById('certificates-grid');
+    if(!grid) return;
+    grid.innerHTML = certificates.length ? certificates.map((c,i)=>`
+      <div style="background:var(--bg);padding:28px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div style="font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px">${c.firm}</div>
+            <div style="font-size:0.9rem;font-weight:600;color:var(--text)">${c.type}</div>
+            <div style="font-size:0.7rem;color:var(--subtle);margin-top:3px">${c.date}</div>
+          </div>
+          <div style="font-family:var(--font);font-size:1.4rem;color:var(--gold)">${c.amount}</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);overflow:hidden">
+          ${c.img?`<img src="${c.img}" style="width:100%;height:auto;display:block;object-fit:contain">`:`<div style="padding:40px;text-align:center;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--subtle)">No image</div>`}
+        </div>
+      </div>`).join('')
+    : '<div style="background:var(--bg);padding:48px;text-align:center;color:var(--subtle);font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase">No certificates added yet</div>';
+  }
+
+  function renderCertAdminList(){
+    document.getElementById('cert-admin-list').innerHTML = certificates.map((c,i)=>`
+      <div class="admin-item">
+        <div class="admin-item-info"><strong>${c.firm} — ${c.type}</strong><span>${c.amount} · ${c.date}</span></div>
+        <button class="btn-del" onclick="deleteCertificate(${i})">Remove</button>
+      </div>`).join('') || '<p style="color:var(--subtle);font-size:0.8rem;padding:16px 0">No certificates added.</p>';
+  }
+
+  function renderAdminList(){
+    document.getElementById('admin-list-items').innerHTML = posts.map(p=>`
+      <div class="admin-item">
+        <div class="admin-item-info"><strong>${p.pair} · ${p.tf}</strong><span><span class="bias-tag ${bc(p.bias)}" style="font-size:0.56rem;padding:2px 8px">${p.bias}</span> &nbsp;${p.date}</span></div>
+        <button class="btn-del" onclick="deletePost(${p.id})">Remove</button>
+      </div>`).join('') || '<p style="color:var(--subtle);font-size:0.8rem;padding:16px 0">No posts published.</p>';
+  }
+
+  function filterPair(pair,el){ activeFilter=pair; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderMember(); }
+
+  function showPage(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+    if(id==='member') renderMember();
+    if(id==='admin'){ renderAdminList(); renderCertAdminList(); }
+    window.scrollTo(0,0);
+  }
+
+  function goTo(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-landing').classList.add('active');
+    setTimeout(()=>{ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth'}); },100);
+  }
+
+  function memberLogin(){
+    if(document.getElementById('member-pw').value===MEMBER_PW){ document.getElementById('member-err').textContent=''; showPage('member'); }
+    else { document.getElementById('member-err').textContent='Incorrect credentials. Please try again.'; }
+  }
+
+  function adminLogin(){
+    if(document.getElementById('admin-pw').value===ADMIN_PW){ document.getElementById('admin-err').textContent=''; showPage('admin'); }
+    else { document.getElementById('admin-err').textContent='Incorrect credentials.'; }
+  }
+
+  async function postAnalysis(){
+    const entry=document.getElementById('f-entry').value, sl=document.getElementById('f-sl').value, tp=document.getElementById('f-tp').value, notes=document.getElementById('f-notes').value.trim();
+    const htfImg=document.getElementById('f-htf-img').value.trim(), ltfImg=document.getElementById('f-ltf-img').value.trim();
+    if(!entry||!sl||!tp||!notes){alert('Please complete all fields.');return;}
+    const d=new Date(), mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    posts.unshift({id:nextId++,pair:document.getElementById('f-pair').value,tf:document.getElementById('f-tf').value,bias:document.getElementById('f-bias').value,entry,sl,tp,notes,htfImg,ltfImg,date:`${d.getDate()} ${mo[d.getMonth()]} ${d.getFullYear()}`});
+    ['f-entry','f-sl','f-tp','f-notes','f-htf-img','f-ltf-img'].forEach(id=>document.getElementById(id).value='');
+    await savePosts(); renderAdminList();
+    alert('Analysis published successfully.');
+  }
+
+  async function deletePost(id){
+    if(!confirm('Remove this analysis?'))return;
+    posts=posts.filter(p=>p.id!==id);
+    await savePosts(); renderAdminList();
+  }
+
+  function previewCert(input){
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('c-preview-img').src = e.target.result;
+      document.getElementById('c-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function compressImage(file, maxWidth=800, quality=0.7){
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if(w > maxWidth){ h = Math.round(h * maxWidth / w); w = maxWidth; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function addCertificate(){
+    const firm=document.getElementById('c-firm').value, type=document.getElementById('c-type').value;
+    const amount=document.getElementById('c-amount').value.trim(), date=document.getElementById('c-date').value.trim();
+    const fileInput=document.getElementById('c-img');
+    if(!amount||!date){alert('Please fill in amount and date.');return;}
+    let img = '';
+    if(fileInput.files[0]){
+      img = await compressImage(fileInput.files[0]);
+    }
+    certificates.push({firm,type,amount,date,img});
+    try {
+      await saveCerts();
+      renderCertificates(); renderCertAdminList();
+      ['c-amount','c-date'].forEach(id=>document.getElementById(id).value='');
+      fileInput.value='';
+      document.getElementById('c-preview').style.display='none';
+      alert('Certificate added successfully.');
+    } catch(e) {
+      alert('Image is too large to store. Please use a smaller image.');
+      certificates.pop();
+    }
+  }
+
+  async function deleteCertificate(i){
+    if(!confirm('Remove this certificate?'))return;
+    certificates.splice(i,1);
+    await saveCerts(); renderCertificates(); renderCertAdminList();
+  }
+
+  async function savePosts(){
+    try{ localStorage.setItem('vdm-posts', JSON.stringify(posts)); localStorage.setItem('vdm-nextid', String(nextId)); }catch(e){ alert('Storage full — try removing old posts or using smaller images.'); }
+  }
+  async function saveCerts(){
+    try{ localStorage.setItem('vdm-certs', JSON.stringify(certificates)); }catch(e){ alert('Storage full — image may be too large.'); }
+  }
+  async function loadData(){
+    try{
+      const p = localStorage.getItem('vdm-posts');
+      const c = localStorage.getItem('vdm-certs');
+      const n = localStorage.getItem('vdm-nextid');
+      posts = p ? JSON.parse(p) : DEFAULT_POSTS;
+      certificates = c ? JSON.parse(c) : [];
+      nextId = n ? parseInt(n) : posts.length ? Math.max(...posts.map(x=>x.id))+1 : 4;
+    }catch(e){ posts=DEFAULT_POSTS; certificates=[]; }
+    renderCertificates(); renderCertAdminList(); renderAdminList();
+  }
+
+  // TICKER
+  const tickerPairs=[{p:'EUR/USD',fallback:1.0842},{p:'GBP/USD',fallback:1.2651},{p:'XAU/USD',fallback:2318.50}];
+  let tickData=tickerPairs.map(x=>({...x,price:x.fallback,base:x.fallback,change:0}));
+  const tickEl=document.getElementById('ticker');
+  const tickBar=tickEl.parentElement;
+  const tc1=document.getElementById('ticker-content-1');
+  const tc2=document.getElementById('ticker-content-2');
+
+  function fmtPrice(p,v){ return p==='XAU/USD'?v.toFixed(2):v.toFixed(4); }
+
+  function getTickHTML(){
+    return Array(6).fill(null).map(()=>
+      tickData.map(d=>{
+        const dir=d.change>=0?'up':'down', arrow=d.change>=0?'▲':'▼';
+        const chg=(d.change>=0?'+':'')+Math.abs(d.change).toFixed(d.p==='XAU/USD'?2:4);
+        return `<span class="tick-item"><span class="tick-pair">${d.p}</span><span class="tick-price">${fmtPrice(d.p,d.price)}</span><span class="tick-${dir}">${arrow} ${chg}</span></span>`;
+      }).join('')
+    ).join('');
+  }
+
+  function buildTicker(){ const h=getTickHTML(); tc1.innerHTML=h; tc2.innerHTML=h; }
+
+  let posX=0,lastT=0,raf=null,isDrag=false,dragSX=0,dragOX=0;
+  const SPEED=60;
+
+  function animTick(ts){
+    if(!lastT) lastT=ts;
+    const dt=(ts-lastT)/1000; lastT=ts;
+    if(!isDrag) posX-=SPEED*dt;
+    const w=tc1.offsetWidth;
+    if(w>0&&posX<=-w) posX+=w;
+    tickEl.style.transform=`translateX(${posX}px)`;
+    raf=requestAnimationFrame(animTick);
+  }
+
+  tickBar.addEventListener('mousedown',e=>{ isDrag=true; cancelAnimationFrame(raf); lastT=0; dragSX=e.pageX; dragOX=posX; tickBar.style.cursor='grabbing'; });
+  document.addEventListener('mousemove',e=>{ if(!isDrag)return; posX=dragOX+(e.pageX-dragSX); const w=tc1.offsetWidth; if(posX<-w)posX+=w; if(posX>0)posX-=w; tickEl.style.transform=`translateX(${posX}px)`; });
+  document.addEventListener('mouseup',()=>{ if(!isDrag)return; isDrag=false; tickBar.style.cursor='grab'; lastT=0; raf=requestAnimationFrame(animTick); });
+
+  async function fetchRates(){
+    try{
+      const apiKey = '9c1dcc6646844758aee41eba35a13bf8';
+      // Fetch each pair individually to avoid batch issues
+      const results = await Promise.all(tickerPairs.map(async pair => {
+        const res = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(pair.p)}&apikey=${apiKey}`);
+        const data = await res.json();
+        return { pair: pair.p, price: data.price ? parseFloat(data.price) : null };
+      }));
+      let firstFetch = tickData.every(d => d.base === d.fallback);
+      results.forEach(r => {
+        if(!r.price) return;
+        const d = tickData.find(d => d.p === r.pair);
+        if(d){
+          d.change = firstFetch ? 0 : r.price - d.base;
+          if(firstFetch) d.base = r.price;
+          d.price = r.price;
+        }
+      });
+      buildTicker();
+    }catch(e){ console.error('Ticker error:', e); }
+  }
+
+  setTimeout(()=>{ buildTicker(); raf=requestAnimationFrame(animTick); fetchRates(); setInterval(fetchRates,60000); },200);
+  loadData();
+</script>
+</body>
+</html>
